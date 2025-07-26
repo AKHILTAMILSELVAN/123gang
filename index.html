@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>EchoNav</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      body {
+        margin: 0;
+        font-family: "Segoe UI", sans-serif;
+        background-color: #101820;
+        color: #fff;
+        overflow-x: hidden;
+      }
+
+      .frequency-background {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: -1;
+        display: flex;
+        align-items: flex-end;
+        justify-content: center;
+        gap: 6px;
+        padding-bottom: 60px;
+      }
+
+      .bar {
+        width: 4px;
+        background-color: #cc2e55;
+        animation: pulse 0.5s infinite ease-in-out;
+        border-radius: 2px;
+      }
+
+      @keyframes pulse {
+        0% {
+          transform: scaleY(1);
+        }
+        50% {
+          transform: scaleY(1.5);
+        }
+        100% {
+          transform: scaleY(1);
+        }
+      }
+
+      @keyframes bounce {
+        0% {
+          transform: scaleY(0.5);
+        }
+        100% {
+          transform: scaleY(1.5);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Background Bars -->
+    <div class="frequency-background" id="bars"></div>
+    <script>
+      const container = document.getElementById("bars");
+      for (let i = 0; i < 60; i++) {
+        const bar = document.createElement("div");
+        bar.classList.add("bar");
+        bar.style.height = `${Math.random() * 100 + 40}px`;
+        bar.style.animationDuration = `${0.4 + Math.random()}s`;
+        container.appendChild(bar);
+      }
+    </script>
+
+    <!-- Navbar -->
+    <div
+      style="
+        background-color: #121212;
+        padding: 20px 40px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      "
+    >
+      <div style="font-size: 24px; font-weight: bold">EchoNav</div>
+      <div>
+        <a href="#" style="margin: 0 15px; text-decoration: none; color: #ccc"
+          >Features</a
+        >
+        <a
+          href="./about.html"
+          style="margin: 0 15px; text-decoration: none; color: #ccc"
+          >How it Works</a
+        >
+        <a
+          href="./benefits.html"
+          style="margin: 0 15px; text-decoration: none; color: #ccc"
+          >Benefits</a
+        >
+        <a
+          href="./contact.html"
+          style="margin: 0 15px; text-decoration: none; color: #ccc"
+          >Contact</a
+        >
+      </div>
+    </div>
+
+    <!-- Hero Section -->
+    <div style="text-align: center; padding: 100px 30px">
+      <h1 style="font-size: 48px; margin-bottom: 20px">Navigate with Sound</h1>
+      <p
+        style="
+          font-size: 20px;
+          color: #bbb;
+          max-width: 800px;
+          margin: 0 auto 40px;
+        "
+      >
+        EchoNav uses AI-powered echolocation to help you navigate confidently
+        through any environment — no camera, no internet, just intelligent
+        sound.
+      </p>
+      <button
+        id="demoBtn"
+        style="
+          background-color: #3498db;
+          border: none;
+          color: white;
+          padding: 12px 24px;
+          font-size: 18px;
+          border-radius: 8px;
+          margin: 10px;
+          cursor: pointer;
+        "
+      >
+        Request Demo
+      </button>
+      <button
+        style="
+          background-color: transparent;
+          border: 2px solid #3498db;
+          color: #3498db;
+          padding: 12px 24px;
+          font-size: 18px;
+          border-radius: 8px;
+          margin: 10px;
+          cursor: pointer;
+        "
+      >
+        Watch Demo
+      </button>
+      <div
+        id="demoResult"
+        style="margin-top: 20px; font-size: 20px; color: #4cc3ff"
+      ></div>
+    </div>
+
+    <!-- Wave Animation -->
+    <div
+      id="wave"
+      style="margin-top: 20px; height: 40px; text-align: center"
+    ></div>
+
+    <!-- JavaScript -->
+    <script>
+      const resultDiv = document.getElementById("demoResult");
+      const demoBtn = document.getElementById("demoBtn");
+
+      function startWave() {
+        const wave = document.getElementById("wave");
+        wave.innerHTML = "";
+        for (let i = 0; i <= 30; i++) {
+          const bar = document.createElement("div");
+          bar.style.display = "inline-block";
+          bar.style.width = "6px";
+          bar.style.height = `${Math.random() * 30 + 10}px`;
+          bar.style.margin = "0 2px";
+          bar.style.background = "#4cc3ff";
+          bar.style.borderRadius = "3px";
+          bar.style.animation = "bounce 0.4s infinite ease-in-out alternate";
+          bar.style.animationDelay = `${Math.random() * 0.3}s`;
+          wave.appendChild(bar);
+        }
+      }
+
+      function stopWave() {
+        document.getElementById("wave").innerHTML = "";
+      }
+
+      demoBtn.addEventListener("click", async function () {
+        demoBtn.disabled = true;
+        resultDiv.innerText = "🔍 Listening for echo...";
+        startWave();
+
+        window.speechSynthesis.cancel();
+
+        try {
+          const response = await fetch("/echolocation");
+          const data = await response.json();
+          stopWave();
+
+          const obj = data.object || "an object";
+          const dist = data.distance || "unknown";
+          const fullSentence = `Detected ${obj} approximately ${dist} cm away.`;
+
+          resultDiv.innerHTML = `<span style="color: #00ffaa;">🧭 ${fullSentence}</span>`;
+
+          const utter = new SpeechSynthesisUtterance(fullSentence);
+          utter.lang = "en-US";
+          utter.pitch = 1;
+          utter.rate = 1;
+          window.speechSynthesis.speak(utter);
+        } catch (error) {
+          stopWave();
+          resultDiv.innerHTML = `<span style="color: #ff6666;">❌ Failed to connect.</span>`;
+          console.error("Fetch failed:", error);
+        } finally {
+          setTimeout(() => {
+            demoBtn.disabled = false;
+          }, 4000);
+        }
+      });
+    </script>
+  </body>
+</html>
